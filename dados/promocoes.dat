@@ -1,0 +1,9 @@
+1;10% na categoria Beleza;true;;;CATEGORIA;2;1;1;1;PERCENTUAL;10.00
+2;Leve 3 pague 2 - Shampoo;true;;;PRODUTO;6;1;3;1;PERCENTUAL;100.00
+3;Eletrônicos 5% a partir de 2 un.;true;;;CATEGORIA;1;2;1;1;PERCENTUAL;5.00
+4;Eletrônicos 10% a partir de 5 un.;true;;;CATEGORIA;1;5;1;1;PERCENTUAL;10.00
+5;Eletrônicos 15% a partir de 10 un.;true;;;CATEGORIA;1;10;1;1;PERCENTUAL;15.00
+6;Black November - R$ 10 a menos na Garrafa;true;2026-11-01;2026-11-30;PRODUTO;8;1;1;1;VALOR_FIXO;10.00
+7;Panelas por R$ 199,90 a partir de 2 un.;true;;;PRODUTO;7;2;1;1;PRECO_FIXO;199.90
+8;Promoção de Verão (inativa);false;2026-12-01;2027-01-31;TODOS;;1;1;1;PERCENTUAL;20.00
+9;Dia das Mães (expirada);false;2026-05-01;2026-05-10;TODOS;;1;1;1;PERCENTUAL;15.00

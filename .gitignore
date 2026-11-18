@@ -1,0 +1,36 @@
+# Documentação gerada (Javadoc)
+docs/
+
+# Arquivos compilados do Java
+*.class
+*.log
+*.ctxt
+*.mtj.tmp/
+
+# Arquivos de empacotamento
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Diretórios de build (Maven / Gradle / IntelliJ)
+target/
+build/
+out/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Logs da Máquina Virtual Java (JVM)
+hs_err_pid*
+replay_pid*
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db

@@ -144,4 +144,36 @@ public class PromocaoService {
         r.removeIf(p -> !p.isAtiva() || !p.vigenteEm(hoje));
         return r;
     }
+
+    /**
+     * Resumo em português da promoção, com o nome da categoria ou do produto alvo.
+     *
+     * @param p         promoção
+     * @param comStatus {@code true} para incluir [ativa]/[inativa] (visão do Administrador)
+     * @return texto descritivo
+     */
+    public String descrever(Promocao p, boolean comStatus) {
+        String alvo = null;
+        if (p.getEscopo() == EscopoPromocao.CATEGORIA && p.getAlvoId() != null) {
+            Categoria c = categorias.obter(p.getAlvoId());
+            alvo = c == null ? null : c.getNome();
+        } else if (p.getEscopo() == EscopoPromocao.PRODUTO && p.getAlvoId() != null) {
+            Produto pr = produtos.obter(p.getAlvoId());
+            alvo = pr == null ? null : pr.getNome();
+        }
+        return comStatus ? p.descricao(alvo) : p.descricaoPublica(alvo);
+    }
+
+    /**
+     * Promoções ativas e vigentes cujo escopo cobre o produto.
+     *
+     * @param produto produto consultado
+     * @param hoje    data de referência
+     * @return promoções vigentes que incluem o produto
+     */
+    public List<Promocao> promocoesDoProduto(Produto produto, LocalDate hoje) {
+        List<Promocao> r = listarVigentes(hoje);
+        r.removeIf(p -> !p.cobreProduto(produto));
+        return r;
+    }
 }

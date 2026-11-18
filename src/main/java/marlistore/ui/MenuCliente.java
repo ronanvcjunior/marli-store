@@ -1,14 +1,17 @@
 package marlistore.ui;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import marlistore.model.Cliente;
 import marlistore.model.Pedido;
 import marlistore.model.Produto;
+import marlistore.model.Promocao;
 import marlistore.model.StatusPedido;
 import marlistore.service.CatalogoService;
 import marlistore.service.ClienteService;
 import marlistore.service.PedidoService;
+import marlistore.service.PromocaoService;
 import marlistore.session.SessaoUsuario;
 
 /**
@@ -20,25 +23,28 @@ public class MenuCliente {
 
     private static final String[] OPCOES = {
         "Consultar catálogo", "Novo pedido", "Meus pedidos (continuar ou revisar)",
-        "Cancelar pedido", "Histórico de compras", "Sair"};
+        "Cancelar pedido", "Histórico de compras", "Promoções vigentes", "Sair"};
 
     private final SessaoUsuario sessao;
     private final CatalogoService catalogo;
     private final ClienteService clientes;
     private final PedidoService pedidos;
+    private final PromocaoService promocoes;
 
     /**
      * @param sessao   sessão atual
      * @param catalogo serviço de catálogo
      * @param clientes serviço de clientes (o Administrador escolhe o cliente do pedido)
      * @param pedidos  serviço de pedidos
+     * @param promocoes serviço de promoções (consulta das vigentes)
      */
     public MenuCliente(SessaoUsuario sessao, CatalogoService catalogo, ClienteService clientes,
-                       PedidoService pedidos) {
+                       PedidoService pedidos, PromocaoService promocoes) {
         this.sessao = sessao;
         this.catalogo = catalogo;
         this.clientes = clientes;
         this.pedidos = pedidos;
+        this.promocoes = promocoes;
     }
 
     /** Exibe o menu do Cliente até o usuário sair. */
@@ -46,7 +52,7 @@ public class MenuCliente {
         while (true) {
             int op = Entrada.escolher("Olá, " + sessao.getNome() + "! O que deseja fazer?",
                     List.of(OPCOES));
-            if (op < 0 || op == 5) {
+            if (op < 0 || op == 6) {
                 return;
             }
             switch (op) {
@@ -54,7 +60,8 @@ public class MenuCliente {
                 case 1: Acao.executar(this::novoPedido); break;
                 case 2: Acao.executar(this::abrirPedido); break;
                 case 3: Acao.executar(this::cancelarPedido); break;
-                default: Acao.executar(this::historico);
+                case 4: Acao.executar(this::historico); break;
+                default: Acao.executar(this::promocoesVigentes);
             }
         }
     }
@@ -102,8 +109,12 @@ public class MenuCliente {
             return;
         }
         StringBuilder sb = new StringBuilder();
+        LocalDate hoje = LocalDate.now();
         for (Produto p : lista) {
             sb.append(Formatador.produtoDetalhe(p)).append("\n");
+            for (Promocao promo : promocoes.promocoesDoProduto(p, hoje)) {
+                sb.append("   >> PROMOÇÃO: ").append(promocoes.descrever(promo, false)).append("\n");
+            }
         }
         Entrada.mostrarTexto("Catálogo", sb.toString());
     }
@@ -220,7 +231,9 @@ public class MenuCliente {
             return;
         }
         List<String> textos = new ArrayList<>();
-        lista.forEach(x -> textos.add(Formatador.produtoLinha(x)));
+        LocalDate hoje = LocalDate.now();
+        lista.forEach(x -> textos.add(Formatador.produtoLinha(x)
+                + (promocoes.promocoesDoProduto(x, hoje).isEmpty() ? "" : "  [PROMOÇÃO]")));
         int i = Entrada.escolher("Produto:", textos);
         if (i < 0) {
             return;
@@ -310,5 +323,21 @@ public class MenuCliente {
         StringBuilder sb = new StringBuilder();
         lista.forEach(p -> sb.append(Formatador.pedidoLinha(p)).append('\n'));
         Entrada.mostrarTexto("Pedidos", sb.toString());
+    }
+
+    /** Lista as promoções ativas e vigentes hoje, em português, para o Cliente planejar a compra. */
+    public void promocoesVigentes() {
+        List<Promocao> vigentes = promocoes.listarVigentes(LocalDate.now());
+        if (vigentes.isEmpty()) {
+            Entrada.mensagem("Não há promoções vigentes no momento.");
+            return;
+        }
+        StringBuilder sb = new StringBuilder("Promoções vigentes em " + Formatador.data(LocalDate.now())
+                + ":\n\n");
+        for (Promocao p : vigentes) {
+            sb.append("- ").append(promocoes.descrever(p, false)).append("\n");
+        }
+        sb.append("\nO desconto é aplicado automaticamente; vale a promoção de maior valor para cada item.");
+        Entrada.mostrarTexto("Promoções vigentes", sb.toString());
     }
 }

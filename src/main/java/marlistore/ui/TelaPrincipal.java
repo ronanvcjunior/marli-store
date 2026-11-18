@@ -47,7 +47,7 @@ public class TelaPrincipal {
         if (sessao == null) {
             return;
         }
-        MenuCliente menuCliente = new MenuCliente(sessao, catalogo, clientes, pedidos);
+        MenuCliente menuCliente = new MenuCliente(sessao, catalogo, clientes, pedidos, promocoes);
         if (sessao.isAdministrador()) {
             new MenuAdmin(sessao, menuCliente, catalogo, clientes, promocoes,
                     new PainelRelatorios(relatorios)).exibir();

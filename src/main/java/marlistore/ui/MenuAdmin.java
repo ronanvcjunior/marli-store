@@ -311,7 +311,7 @@ public class MenuAdmin {
     private Promocao escolherPromocao() {
         List<Promocao> lista = promocoes.listar();
         List<String> t = new ArrayList<>();
-        lista.forEach(p -> t.add(p.getId() + " - " + p.descricao()));
+        lista.forEach(p -> t.add(p.getId() + " - " + promocoes.descrever(p, true)));
         int i = Entrada.escolher("Promoção:", t);
         if (i < 0) {
             if (lista.isEmpty()) {
@@ -351,7 +351,7 @@ public class MenuAdmin {
             }
             default: {
                 List<String> l = new ArrayList<>();
-                promocoes.listar().forEach(p -> l.add(p.getId() + " - " + p.descricao()));
+                promocoes.listar().forEach(p -> l.add(p.getId() + " - " + promocoes.descrever(p, true)));
                 mostrarLista("Promoções", l);
             }
         }

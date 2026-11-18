@@ -246,6 +246,26 @@ public class Promocao extends EntidadeBase {
     }
 
     /**
+     * Informa se o escopo da promoção cobre o produto, sem considerar quantidade nem vigência.
+     * Usado para destacar no catálogo os produtos que participam de uma promoção.
+     *
+     * @param p produto
+     * @return {@code true} se o escopo (toda a loja, categoria ou produto) inclui o produto
+     */
+    public boolean cobreProduto(Produto p) {
+        switch (escopo) {
+            case TODOS:
+                return true;
+            case CATEGORIA:
+                return alvoId != null && p.getCategoria().getId() == alvoId;
+            case PRODUTO:
+                return alvoId != null && p.getId() == alvoId;
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Informa se a promoção vale para o item: ativa, vigente, escopo cobre o
      * produto e a quantidade atinge a mínima.
      *
@@ -254,16 +274,7 @@ public class Promocao extends EntidadeBase {
      * @return {@code true} se a promoção é aplicável
      */
     public boolean aplicaA(ItemPedido item, LocalDate hoje) {
-        if (!ativa || !vigenteEm(hoje) || item.getQuantidade() < qtdMinima) {
-            return false;
-        }
-        Produto p = item.getProduto();
-        return switch (escopo) {
-            case TODOS -> true;
-            case CATEGORIA -> alvoId != null && p.getCategoria().getId() == alvoId;
-            case PRODUTO -> alvoId != null && p.getId() == alvoId;
-            default -> false;
-        };
+        return ativa && vigenteEm(hoje) && item.getQuantidade() >= qtdMinima && cobreProduto(item.getProduto());
     }
 
     /**
@@ -280,8 +291,32 @@ public class Promocao extends EntidadeBase {
         return desconto.min(precoUnitario.multiply(BigDecimal.valueOf(qtd))).setScale(2, RoundingMode.HALF_UP);
     }
 
-    /** @return resumo da promoção em português, exibido antes de gravar */
+    /** @return resumo da promoção em português, com o alvo pelo código e o status (usado antes de gravar) */
     public String descricao() {
+        return montarDescricao(null, true);
+    }
+
+    /**
+     * Resumo em português com o nome da categoria ou do produto alvo e o status (ativa/inativa).
+     *
+     * @param nomeAlvo nome da categoria ou do produto alvo (ignorado para toda a loja; nulo usa o código)
+     * @return resumo da promoção
+     */
+    public String descricao(String nomeAlvo) {
+        return montarDescricao(nomeAlvo, true);
+    }
+
+    /**
+     * Resumo em português para o Cliente: com o nome do alvo e sem o status.
+     *
+     * @param nomeAlvo nome da categoria ou do produto alvo (ignorado para toda a loja; nulo usa o código)
+     * @return resumo da promoção
+     */
+    public String descricaoPublica(String nomeAlvo) {
+        return montarDescricao(nomeAlvo, false);
+    }
+
+    private String montarDescricao(String nomeAlvo, boolean comStatus) {
         StringBuilder sb = new StringBuilder(nome).append(": ");
         switch (tipoDesconto) {
             case PERCENTUAL:
@@ -303,10 +338,10 @@ public class Promocao extends EntidadeBase {
                 sb.append("em toda a loja");
                 break;
             case CATEGORIA:
-                sb.append("na categoria de código ").append(alvoId);
+                sb.append(nomeAlvo == null ? "na categoria de código " + alvoId : "na categoria " + nomeAlvo);
                 break;
             default:
-                sb.append("no produto de código ").append(alvoId);
+                sb.append(nomeAlvo == null ? "no produto de código " + alvoId : "no produto " + nomeAlvo);
         }
         if (qtdMinima > 1) {
             sb.append(", a partir de ").append(qtdMinima).append(" unidades");
@@ -317,7 +352,10 @@ public class Promocao extends EntidadeBase {
                     .append(" a ")
                     .append(fimVigencia == null ? "sem fim" : fimVigencia.format(Validacao.DATA));
         }
-        return sb.append(ativa ? " [ativa]" : " [inativa]").toString();
+        if (comStatus) {
+            sb.append(ativa ? " [ativa]" : " [inativa]");
+        }
+        return sb.toString();
     }
 
     @Override
